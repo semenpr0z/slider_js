@@ -1,6 +1,6 @@
 let images = [{
     url: "https://img.favcars.com/mini/hatch/mini_hatch_2010_wallpapers_14_1280x960.jpg",
-    title: "Mini Cooper черный"
+    title: "Mini Cooper черный 123456789012345678901234567890123456789012345678901234567890"
   }, {
     url: "https://img.favcars.com/mini/cabrio/mini_cabrio_2009_pictures_5_1280x960.jpg",
     title: "Mini Cooper красный"
@@ -12,14 +12,32 @@ let images = [{
     title: "Mini Cooper бордовый"
   }];
 
-function initSlider() {
+function initSlider(options) {
     if (!images || !images.length) return;
+    options = options  || {
+      titles: false,
+      dots: true,
+      autoPlay: false
+    }
 
     let sliderImages = document.querySelector(".slider__images");
-    let sliderArrows = document.querySelector(".slider__arrows")
+    let sliderArrows = document.querySelector(".slider__arrows");
+    let sliderDots = document.querySelector(".slider__dots");
 
     initImages();
     initArrows();
+
+    if (options.dots) {
+      initDots();
+    }
+
+    if (options.titles) {
+      initTitle();
+    }
+
+    if (options.autoPlay) {
+      initAutoPlay();
+    }
 
     function initImages() {
         images.forEach((image, index) => {
@@ -38,16 +56,70 @@ function initSlider() {
             } else {
               nextNumber = curNumber === images.length - 1? 0 : curNumber + 1;
             }
-            moveSlider(nextNumber)
+            moveSlider(nextNumber);
           });
         });
+    }
+
+    function initDots() {
+      images.forEach((image, index) => {
+        let dot = `<div class="slider__dots-item n${index} ${index === 0? "active" : ""}" data-index="${index}"></div>`;
+        sliderDots.innerHTML += dot;
+      });
+      sliderDots.querySelectorAll(".slider__dots-item").forEach(dot => {
+        dot.addEventListener("click", function() {
+          moveSlider(this.dataset.index);
+        })
+      })
     }
 
     function moveSlider(num) {
       sliderImages.querySelector(".active").classList.remove("active");
       sliderImages.querySelector(".n" + num).classList.add("active");
+      if (options.dots) {
+        sliderDots.querySelector(".active").classList.remove("active");
+        sliderDots.querySelector(".n" + num).classList.add("active");
+      }
+      if (options.titles) changeTitle(num);
+    }
+
+
+    function initTitle() {
+      let titleDiv = `<div class="slider__images-title">${images[0].title}</div>`;
+      sliderImages.innerHTML += cropTitle(titleDiv, 50);
+    }
+
+    function changeTitle(num) {
+      if (!images[num].title) return;
+      let sliderTitle = sliderImages.querySelector(".slider__images-title");
+      sliderTitle.innerText = cropTitle(images[num].title, 50);
+    }
+
+
+    function cropTitle(title, size) {
+      if (title.length <= size) {
+        return title;
+      } else{
+        return title.substr(0, size) + "...";
+      }
+    }
+
+    function initAutoPlay() {
+      setInterval(() => {
+        let curNumber = +sliderImages.querySelector(".active").dataset.index;
+        let nextNumber = curNumber === images.length - 1? 0 : curNumber + 1;
+        moveSlider(nextNumber);
+      }, options.autoPlayInterval);
     }
 }
 
+let sliderOptions = {
+  dots: true,
+  titles: true,
+  autoPlay: true,
+  autoPlayInterval: 3000
+}
 
-document.addEventListener("DOMContentLoaded", initSlider);
+document.addEventListener("DOMContentLoaded", function(){
+  initSlider(sliderOptions);
+});
